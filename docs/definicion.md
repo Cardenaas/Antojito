@@ -216,3 +216,158 @@ Cualquier funcionalidad que no esté incluida explícitamente en el alcance no f
 Las funcionalidades anteriores corresponden a las pantallas que actualmente existen en el prototipo: `login.html`, `menu.html`, `producto.html`, `carrito.html`, `checkout.html`, `seguimiento.html`, `historial.html`, `admin-pedidos.html`, `admin-menu.html` y `admin-ventas.html`.
 
 > **Nota de implementación:** las funcionalidades están actualmente simuladas con JavaScript y `localStorage`. La implementación final deberá reemplazar esa persistencia temporal por una API/backend conectada a una base de datos.
+
+## 7. Requerimientos funcionales
+
+| ID | Requerimiento | Rol | Prioridad |
+|---|---|---|---|
+| RF-01 | El sistema debe permitir iniciar sesión con correo y contraseña, distinguiendo el rol cliente del rol administrador. | Todos | Alta |
+| RF-02 | El sistema debe mostrar el catálogo de productos organizado por categoría. | Cliente | Alta |
+| RF-03 | El sistema debe permitir consultar el detalle de un producto antes de agregarlo al carrito. | Cliente | Media |
+| RF-04 | El sistema debe permitir filtrar los productos por categoría. | Cliente | Media |
+| RF-05 | El sistema debe permitir agregar al carrito solo productos marcados como disponibles, y modificar sus cantidades. | Cliente | Alta |
+| RF-06 | El sistema debe permitir confirmar el pedido indicando tipo de entrega (domicilio o recoger), dirección cuando aplique, y método de pago. | Cliente | Alta |
+| RF-07 | El sistema debe calcular automáticamente subtotal, costo de domicilio y total del pedido. | Cliente | Alta |
+| RF-08 | El sistema debe registrar el pedido en estado "Recibido" al confirmarse el checkout. | Cliente | Alta |
+| RF-09 | El sistema debe permitir al cliente consultar el estado actual de su pedido. | Cliente | Alta |
+| RF-10 | El sistema debe permitir al cliente consultar su historial de pedidos anteriores. | Cliente | Media |
+| RF-11 | El sistema debe permitir al cliente cerrar sesión. | Cliente | Baja |
+| RF-12 | El sistema debe permitir al administrador consultar todos los pedidos registrados. | Administrador | Alta |
+| RF-13 | El sistema debe permitir al administrador avanzar el estado de un pedido siguiendo el orden establecido (recibido → preparación → listo → entregado). | Administrador | Alta |
+| RF-14 | El sistema debe permitir al administrador crear nuevos productos con su información principal. | Administrador | Alta |
+| RF-15 | El sistema debe permitir al administrador editar la información de un producto existente. | Administrador | Media |
+| RF-16 | El sistema debe permitir al administrador activar o desactivar un producto. | Administrador | Media |
+| RF-17 | El sistema debe permitir al administrador consultar un reporte de ventas (unidades vendidas por producto e ingresos por categoría). | Administrador | Media |
+| RF-18 | El sistema debe permitir al administrador cerrar sesión. | Administrador | Baja |
+
+## 8. Requerimientos no funcionales
+
+| ID | Categoría | Requerimiento |
+|---|---|---|
+| RNF-01 | Seguridad | Las contraseñas se almacenan como `password_hash` mediante un algoritmo seguro (bcrypt/Argon2), nunca en texto plano. |
+| RNF-02 | Seguridad | El acceso a las pantallas de administrador (`admin-*.html`) se restringe a usuarios con rol administrador, tanto en la interfaz como en el servidor. |
+| RNF-03 | Usabilidad | La interfaz se diseña mobile-first, con un contenedor principal pensado para anchos de teléfono (~440 px) y adaptable a pantallas más grandes. |
+| RNF-04 | Compatibilidad | La plataforma funciona en las versiones vigentes de Chrome, Edge y Firefox. |
+| RNF-05 | Rendimiento | El catálogo de productos debe cargar en menos de 2 segundos con conexión estable. |
+| RNF-06 | Mantenibilidad | El modelo de datos usa catálogos normalizados (roles, estados_pedido, metodos_pago, tipos_entrega) en vez de valores de texto libres, para facilitar cambios futuros sin modificar código. |
+| RNF-07 | Disponibilidad | La plataforma debe estar disponible durante el horario de atención del restaurante. |
+
+## 9. Reglas de negocio
+
+**RN-01.** Un pedido no puede registrarse vacío; debe tener al menos un producto en el detalle.
+
+**RN-02.** Solo se pueden agregar al carrito productos marcados como disponibles (`disponible = TRUE`).
+
+**RN-03.** El estado de un pedido solo avanza en el orden definido por `estados_pedido.orden` (recibido → preparación → listo → entregado), salvo cancelación.
+
+**RN-04.** Solo el administrador puede cambiar el estado de un pedido.
+
+**RN-05.** El total del pedido se calcula automáticamente: `total = subtotal + domicilio`.
+
+**RN-06.** Un cliente solo puede consultar y cancelar sus propios pedidos.
+
+**RN-07.** Un producto con pedidos activos asociados no se elimina; se desactiva (`disponible = FALSE`).
+
+**RN-08.** La dirección de entrega es obligatoria únicamente cuando el tipo de entrega es "domicilio".
+
+## 10. Modelo de datos
+
+| Entidad | Atributos principales |
+|---|---|
+| roles | id, nombre |
+| usuarios | id, nombre, correo, password_hash, rol_id, activo, creado_en |
+| categorias | id, nombre, activa |
+| productos | id, nombre, descripcion, precio, emoji, categoria_id, disponible, creado_en |
+| estados_pedido | id, nombre, orden |
+| metodos_pago | id, nombre |
+| tipos_entrega | id, nombre |
+| pedidos | id, usuario_id, estado_id, tipo_entrega_id, metodo_pago_id, direccion, subtotal, domicilio, total, creado_en |
+| detalle_pedido | id, pedido_id, producto_id, cantidad, precio_unitario, observaciones, subtotal |
+
+**Relaciones:** un rol tiene muchos usuarios. Un usuario (cliente) tiene muchos pedidos. Una categoría tiene muchos productos. Un pedido tiene muchos detalle_pedido, y cada detalle_pedido referencia un producto. Un pedido referencia un estado_pedido, un tipo_entrega y un metodo_pago. El esquema completo, con las restricciones (`CHECK`, llaves foráneas) y los datos iniciales de catálogo, está en `database/antojito.sql`.
+
+## 11. Pantallas y flujo
+
+| Pantalla | Rol | Para qué sirve |
+|---|---|---|
+| `login.html` | Todos | Iniciar sesión según el rol (cliente o administrador). |
+| `menu.html` | Cliente | Consultar el catálogo de productos filtrado por categoría. |
+| `producto.html` | Cliente | Ver el detalle de un producto y agregarlo al carrito. |
+| `carrito.html` | Cliente | Revisar y modificar las cantidades de los productos agregados. |
+| `checkout.html` | Cliente | Elegir tipo de entrega, dirección (si aplica) y método de pago, y confirmar el pedido. |
+| `seguimiento.html` | Cliente | Consultar el estado actual del pedido activo. |
+| `historial.html` | Cliente | Consultar los pedidos anteriores del cliente. |
+| `admin-pedidos.html` | Administrador | Consultar los pedidos registrados y avanzar su estado. |
+| `admin-menu.html` | Administrador | Crear, editar y activar/desactivar productos del menú. |
+| `admin-ventas.html` | Administrador | Consultar el reporte de ventas: unidades vendidas por producto e ingresos por categoría. |
+
+**Flujo del cliente:** `login → menu → producto → carrito → checkout → seguimiento → historial`
+
+**Flujo del administrador:** `login → admin-pedidos → admin-menu → admin-ventas` (las tres pantallas administrativas son independientes entre sí; el administrador navega libremente entre ellas después de iniciar sesión).
+
+## 12. Mockup
+
+El mockup de Antojito corresponde directamente al prototipo funcional en HTML/CSS incluido en este repositorio (`login.html`, `menu.html`, `producto.html`, `carrito.html`, `checkout.html`, `seguimiento.html`, `historial.html`, `admin-pedidos.html`, `admin-menu.html`, `admin-ventas.html`), ya que refleja con fidelidad cómo se verá la plataforma terminada.
+
+*(Pendiente: agregar en `docs/mockup/` una captura de pantalla en `.png` por cada una de las 10 páginas listadas arriba, con una descripción de dos o tres líneas por imagen.)*
+
+## 13. Historias de usuario, casos de uso, restricciones y supuestos
+
+**Historias de usuario:**
+
+- Como cliente, quiero consultar el menú por categorías, para encontrar rápido lo que quiero pedir.
+- Como cliente, quiero ver el detalle de un producto antes de agregarlo, para decidir con información completa.
+- Como cliente, quiero armar un carrito y modificar cantidades, para ajustar mi pedido antes de confirmarlo.
+- Como cliente, quiero elegir entre domicilio o recoger en tienda, para adaptar el pedido a mi situación.
+- Como cliente, quiero ver el estado de mi pedido, para saber cuánto falta para recibirlo.
+- Como cliente, quiero consultar mi historial de pedidos, para repetir uno anterior fácilmente.
+- Como administrador, quiero gestionar los productos del menú, para mantenerlo actualizado.
+- Como administrador, quiero ver los pedidos registrados y avanzar su estado, para organizar la cocina.
+- Como administrador, quiero consultar un reporte de ventas, para saber qué productos se venden más.
+
+**Casos de uso:**
+
+*Realizar pedido*
+- Actor: Cliente. Precondición: sesión iniciada, al menos un producto en el carrito.
+- Flujo: revisa el carrito, elige tipo de entrega y método de pago (indica dirección si es domicilio), confirma; el sistema calcula el total y registra el pedido en estado "Recibido".
+- Excepción: si falta la dirección para un pedido a domicilio, el sistema no permite confirmar y solicita completarla (RN-08).
+
+*Gestionar pedidos*
+- Actor: Administrador. Precondición: sesión iniciada, al menos un pedido registrado.
+- Flujo: entra a `admin-pedidos.html`, consulta los pedidos, abre uno y avanza su estado.
+- Excepción: si intenta saltarse un estado, el sistema no lo permite y muestra cuál es el siguiente estado válido (RN-03).
+
+*Gestionar productos del menú*
+- Actor: Administrador. Precondición: sesión iniciada.
+- Flujo: entra a `admin-menu.html`, crea o edita un producto, o cambia su disponibilidad.
+- Excepción: si intenta eliminar un producto con pedidos activos asociados, el sistema lo desactiva en vez de eliminarlo (RN-07).
+
+**Restricciones:**
+- Tiempo: 7 semanas, la mitad del semestre.
+- Equipo: 2 personas.
+- El proyecto debe llevar frontend, backend y base de datos completos; el prototipo actual usa `localStorage` como reemplazo temporal mientras se conecta el backend (ver `docs/estado-implementacion.md`).
+- No se maneja pago real, solo simulación.
+- Es un solo restaurante, no un marketplace.
+
+**Supuestos:**
+- Se asume que Antojito opera en un solo local físico.
+- Se asume que los domicilios los reparte personal propio del restaurante, sin rastreo por GPS.
+- Se asume una única moneda (pesos colombianos) y una sola zona horaria para todos los pedidos.
+
+## Historial de cambios
+
+| Fecha | Qué cambió | Quién |
+|---|---|---|
+| 2026-09-25 | Versión inicial: descripción general, problema, objetivos, stakeholders, alcance y funcionalidades. | Equipo |
+| 2026-09-26 | Se agregan las secciones 7 a 13 (requerimientos, reglas de negocio, modelo de datos, pantallas, mockup e historias/casos de uso), alineadas con el esquema SQL y el prototipo HTML ya construidos. | Equipo |
+
+## Referencias
+
+- Mozilla Developer Network, "Formularios web". Consultada como referencia para la validación de los campos del carrito y el checkout (sección 7, RF-06 y RF-07). Enlace: developer.mozilla.org/es/docs/Learn/Forms
+- MySQL 8.0 Reference Manual, "CREATE TABLE Statement". Consultada como referencia para las restricciones (`CHECK`, llaves foráneas) del esquema en `database/antojito.sql` (sección 10). Enlace: dev.mysql.com/doc/refman/8.0/en/create-table.html
+
+## Declaración de uso de inteligencia artificial
+
+Usamos Claude (Anthropic) como asistente de IA principalmente para estructurar y redactar el documento `docs/definicion.md` en algunas secciones pedidas por la actividad. Le entregamos información real de nuestro proyecto ya construido: el código de las páginas HTML y CSS, el esquema de base de datos de `database/antojito.sql`, y el `README.md` con el estado de la implementación. Le pedimos que organizara esa información en el formato de la actividad, que redactara los requerimientos funcionales y no funcionales a partir de las funcionalidades ya construidas, y que propusiera historias de usuario y casos de uso coherentes con las reglas de negocio que ya teníamos definidas.
+
+Aceptamos la mayor parte del texto generado tal cual, después de revisar que cada sección correspondiera con lo que realmente construimos (pantallas, esquema de datos, reglas de negocio). Ajustamos manualmente las partes que mencionaban tecnología que no íbamos a usar en la entrega final (se descartó una versión que asumía un backend en Python con SQLite, y se dejó la versión que corresponde al prototipo real con `localStorage`). El problema original, el código del prototipo (HTML, CSS, JavaScript) y el diseño del esquema de base de datos fueron creados por el equipo antes de usar la IA para este documento.

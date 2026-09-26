@@ -1,5 +1,5 @@
 -- ANTOJITO - Modelo inicial de base de datos
--- Motor sugerido: MySQL 8+
+
 
 CREATE DATABASE IF NOT EXISTS antojito CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE antojito;
