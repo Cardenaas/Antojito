@@ -1,3 +1,6 @@
+#INTEGRANTES: Santiago Giraldo, Juan Esteban Cardenas 
+
+
 # Antojito
 
 Plataforma web para la gestión de pedidos de un negocio de comida.
