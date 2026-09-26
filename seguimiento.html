@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antojito · Seguimiento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.linea-tiempo { position: relative; padding-left: 30px; margin: 24px 0; }
+.linea-tiempo::before {
+    content: ""; position: absolute; left: 10px; top: 6px; bottom: 6px;
+    width: 2px; background: var(--line);
+}
+.paso { position: relative; margin-bottom: 26px; }
+.paso::before {
+    content: ""; position: absolute; left: -30px; top: 2px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--line); border: 3px solid var(--cream);
+}
+.paso.hecho::before { background: var(--sage); }
+.paso.actual::before { background: var(--chili); box-shadow: 0 0 0 4px #fbe4dc; }
+.paso h3 { font-size: 14px; margin-bottom: 2px; }
+.paso p { font-size: 12px; color: var(--charcoal-soft); }
+</style>
+</head>
+<body>
+<div class="app">
+
+    <div class="topbar">
+        <div class="brand" style="font-size:18px;" id="titulo-pedido">Pedido</div>
+        <a href="menu.html" class="icon-btn">✕</a>
+    </div>
+
+    <div class="contenido" id="contenido"></div>
+
+</div>
+
+<script src="script.js"></script>
+<script>const sesion = exigirCliente(); if (!sesion) throw new Error('Sesión requerida');</script>
+<script>
+const idUltimo = Number(localStorage.getItem(LS_ULTIMO_PEDIDO));
+const pedidos = pedidosDelCliente();
+const pedido = pedidos.find(p => p.id === idUltimo) || pedidos[pedidos.length - 1];
+
+if (!pedido) {
+    document.getElementById('contenido').innerHTML = `
+        <div class="tarjeta" style="text-align:center;">Todavía no tienes pedidos activos.</div>
+        <a href="menu.html" class="btn btn-primario">Ir al menú</a>`;
+} else {
+    document.getElementById('titulo-pedido').textContent = 'Pedido #' + pedido.id;
+
+    const iActual = ORDEN_ESTADOS.indexOf(pedido.estado);
+    const nombresPasos = { recibido: 'Recibido', preparacion: 'En preparación', listo: 'Listo', entregado: 'Entregado' };
+    const descPasos = {
+        recibido: 'Tu pedido llegó a la cocina · ' + pedido.hora,
+        preparacion: 'El equipo de cocina está armando tu pedido',
+        listo: 'Tu pedido está empacado y esperando salir',
+        entregado: 'Recibiste tu pedido'
+    };
+
+    const pasosHtml = ORDEN_ESTADOS.map((estado, i) => {
+        let clase = '';
+        if (i < iActual) clase = 'hecho';
+        else if (i === iActual) clase = 'actual';
+        return `<div class="paso ${clase}">
+            <h3>${nombresPasos[estado]}</h3>
+            <p>${descPasos[estado]}</p>
+        </div>`;
+    }).join('');
+
+    const itemsHtml = pedido.items.map(it => `
+        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
+            <span>${it.cantidad}x ${it.nombre}</span>
+        </div>`).join('');
+
+    document.getElementById('contenido').innerHTML = `
+        <div class="tarjeta" style="text-align:center;">
+            <p style="font-size:13px; color:var(--charcoal-soft); margin-bottom:4px;">Estado actual</p>
+            <span class="estado-pill ${claseEstado(pedido.estado)}">${NOMBRE_ESTADO[pedido.estado]}</span>
+            <p style="font-size:12px; color:var(--charcoal-soft); margin-top:10px;">
+                ${pedido.estado === 'entregado' ? '¡Buen provecho!' : 'Tiempo estimado: 20-25 min'}
+            </p>
+        </div>
+
+        <div class="linea-tiempo">${pasosHtml}</div>
+
+        <p class="seccion-titulo">Resumen</p>
+        <div class="tarjeta">
+            ${itemsHtml}
+            <div style="display:flex; justify-content:space-between; font-weight:700; font-size:15px; padding-top:10px; margin-top:6px; border-top:1px solid var(--line);">
+                <span>Total pagado</span><span class="precio">${fmt(pedido.total)}</span>
+            </div>
+        </div>
+
+        <a href="historial.html" class="btn btn-secundario">Ver historial de pedidos</a>`;
+}
+</script>
+</body>
+</html>

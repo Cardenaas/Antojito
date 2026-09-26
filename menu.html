@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antojito · Menú</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+    <div class="topbar">
+        <div>
+            <div class="brand">Antojito</div>
+            <div class="tagline">el de confianza</div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;"><span id="sesion-usuario" style="font-size:11px;color:var(--charcoal-soft);"></span>
+            <a href="historial.html" class="icon-btn" title="Mis pedidos">🕘</a>
+            <a href="login.html" class="icon-btn" title="Cerrar sesión" onclick="cerrarSesion(); return false;">👤</a>
+        </div>
+    </div>
+
+    <div class="categorias" id="categorias"></div>
+
+    <div class="productos" id="productos"></div>
+
+    <a href="carrito.html" class="barra-carrito" id="barra-carrito" style="display:none;">
+        <span><span class="cant" id="cart-cant">0</span>Ver carrito</span>
+        <span id="cart-total">$0</span>
+    </a>
+
+</div>
+
+<script src="script.js"></script>
+<script>const sesion = exigirCliente(); if (!sesion) throw new Error('Sesión requerida');</script>
+<script>
+let categoriaActiva = 'Todo';
+
+function renderCategorias() {
+    const productos = getProductos();
+    const categorias = ['Todo', ...new Set(productos.map(p => p.categoria))];
+    const cont = document.getElementById('categorias');
+    cont.innerHTML = categorias.map(c =>
+        `<button class="chip ${c === categoriaActiva ? 'activo' : ''}" onclick="cambiarCategoria('${c}')">${c}</button>`
+    ).join('');
+}
+
+function cambiarCategoria(c) {
+    categoriaActiva = c;
+    renderCategorias();
+    renderProductos();
+}
+
+function renderProductos() {
+    const productos = getProductos().filter(p => categoriaActiva === 'Todo' || p.categoria === categoriaActiva);
+    const cont = document.getElementById('productos');
+    cont.innerHTML = productos.map(p => `
+        <div class="producto-card" style="${p.disponible ? '' : 'opacity:0.6;'}" onclick="verProducto(${p.id})">
+            <div class="foto">${p.emoji}</div>
+            <div class="info">
+                ${p.disponible ? '' : '<span class="badge-agotado">Agotado</span>'}
+                <h3>${p.nombre}</h3>
+                <p class="desc">${p.desc}</p>
+                <div class="fila-precio">
+                    <span class="precio">${fmt(p.precio)}</span>
+                    ${p.disponible ? `<span class="btn-agregar" onclick="agregarRapido(event, ${p.id})">+</span>` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function verProducto(id) {
+    window.location.href = 'producto.html?id=' + id;
+}
+
+function agregarRapido(e, id) {
+    e.stopPropagation();
+    const p = getProducto(id);
+    agregarAlCarrito(id, 1, p.precio, '');
+    actualizarBarraCarrito();
+}
+
+renderCategorias();
+renderProductos();
+actualizarBarraCarrito();
+document.getElementById('sesion-usuario').textContent = 'Sesión: ' + getSesion().nombre;
+</script>
+</body>
+</html>

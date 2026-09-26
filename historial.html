@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antojito · Historial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+    <div class="topbar">
+        <a href="menu.html" class="icon-btn">←</a>
+        <div class="brand" style="font-size:18px;">Mis pedidos</div>
+        <a href="login.html" class="icon-btn" title="Cerrar sesión" onclick="cerrarSesion(); return false;">👤</a>
+    </div>
+
+    <div class="contenido" id="lista"></div>
+
+</div>
+
+<script src="script.js"></script>
+<script>const sesion = exigirCliente(); if (!sesion) throw new Error('Sesión requerida');</script>
+<script>
+const pedidos = [...pedidosDelCliente()].reverse();
+const cont = document.getElementById('lista');
+
+if (pedidos.length === 0) {
+    cont.innerHTML = `<div class="tarjeta" style="text-align:center; color:var(--charcoal-soft);">Aún no tienes pedidos.</div>`;
+} else {
+    cont.innerHTML = pedidos.map(p => {
+        const cantidadProductos = p.items.reduce((s, it) => s + it.cantidad, 0);
+        const accion = p.estado === 'entregado'
+            ? `<span class="btn-texto" style="cursor:pointer;" onclick="repetir(${p.id})">Repetir pedido →</span>`
+            : `<span class="btn-texto" style="cursor:pointer;" onclick="verSeguimiento(${p.id})">Ver seguimiento →</span>`;
+        return `
+        <div class="tarjeta">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="font-weight:700; font-size:14px;">Pedido #${p.id}</span>
+                <span class="estado-pill ${claseEstado(p.estado)}">${NOMBRE_ESTADO[p.estado]}</span>
+            </div>
+            <p style="font-size:12px; color:var(--charcoal-soft); margin-bottom:10px;">${p.hora} · ${cantidadProductos} producto(s) · ${fmt(p.total)}</p>
+            ${accion}
+        </div>`;
+    }).join('');
+}
+
+function verSeguimiento(id) {
+    localStorage.setItem(LS_ULTIMO_PEDIDO, id);
+    window.location.href = 'seguimiento.html';
+}
+
+function repetir(id) {
+    const pedido = getPedidos().find(p => p.id === id);
+    const productos = getProductos();
+    pedido.items.forEach(it => {
+        const prod = productos.find(p => p.nombre === it.nombre);
+        if (prod) agregarAlCarrito(prod.id, it.cantidad, prod.precio, '');
+    });
+    window.location.href = 'carrito.html';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antojito Admin · Pedidos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <div class="brand">Antojito</div>
+        <div class="tagline">Panel administrador</div>
+        <nav>
+            <a href="admin-pedidos.html" class="activo">📋 Pedidos</a>
+            <a href="admin-menu.html">🍽️ Menú</a>
+            <a href="admin-ventas.html">📈 Ventas</a>
+            <a href="login.html" onclick="cerrarSesion(); return false;">↩ Salir</a>
+        </nav>
+    </aside>
+
+    <main class="admin-main">
+        <div id="sesion-usuario" style="font-size:12px;color:var(--charcoal-soft);margin-bottom:10px;"></div>
+        <div class="admin-header">
+            <div>
+                <h1>Pedidos activos</h1>
+                <p>Vista de cocina · ordenados por hora de llegada</p>
+            </div>
+            <a href="login.html" class="btn btn-secundario" style="width:auto; padding:10px 18px; font-size:13px;" onclick="cerrarSesion(); return false;">Cerrar sesión</a>
+        </div>
+
+        <div class="kanban" id="kanban"></div>
+    </main>
+</div>
+
+<script src="script.js"></script>
+<script>const sesion = exigirAdmin(); if (!sesion) throw new Error('Permisos de administrador requeridos');</script>
+<script>
+const COLUMNAS = [
+    { estado: 'recibido', titulo: 'Recibido', siguiente: 'Pasar a preparación →' },
+    { estado: 'preparacion', titulo: 'En preparación', siguiente: 'Marcar como listo →' },
+    { estado: 'listo', titulo: 'Listo', siguiente: 'Marcar como entregado →' },
+    { estado: 'entregado', titulo: 'Entregado', siguiente: null }
+];
+
+function renderKanban() {
+    const pedidos = getPedidos();
+    const cont = document.getElementById('kanban');
+
+    cont.innerHTML = COLUMNAS.map(col => {
+        const pedidosCol = pedidos.filter(p => p.estado === col.estado).sort((a, b) => a.id - b.id);
+        const tarjetas = pedidosCol.map(p => `
+            <div class="pedido-card" style="${col.estado === 'entregado' ? 'opacity:0.7;' : ''}">
+                <div class="top-row"><span>#${p.id}</span><span class="hora">${p.hora}</span></div>
+                <ul>${p.items.map(it => `<li>${it.cantidad}x ${it.nombre}</li>`).join('')}</ul>
+                ${col.siguiente ? `<button class="avanzar" onclick="avanzarEstado(${p.id})">${col.siguiente}</button>` : ''}
+            </div>
+        `).join('');
+
+        return `
+        <div class="kanban-col">
+            <h2>${col.titulo} <span>${pedidosCol.length}</span></h2>
+            ${tarjetas || '<p style="font-size:12px; color:var(--charcoal-soft);">Sin pedidos</p>'}
+        </div>`;
+    }).join('');
+}
+
+renderKanban();
+document.getElementById('sesion-usuario').textContent = 'Sesión: ' + getSesion().nombre;
+</script>
+</body>
+</html>

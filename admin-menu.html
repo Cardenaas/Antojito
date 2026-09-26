@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antojito Admin · Menú</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <div class="brand">Antojito</div>
+        <div class="tagline">Panel administrador</div>
+        <nav>
+            <a href="admin-pedidos.html">📋 Pedidos</a>
+            <a href="admin-menu.html" class="activo">🍽️ Menú</a>
+            <a href="admin-ventas.html">📈 Ventas</a>
+            <a href="login.html" onclick="cerrarSesion(); return false;">↩ Salir</a>
+        </nav>
+    </aside>
+
+    <main class="admin-main">
+        <div id="sesion-usuario" style="font-size:12px;color:var(--charcoal-soft);margin-bottom:10px;"></div>
+        <div class="admin-header">
+            <div>
+                <h1>Gestión del menú</h1>
+                <p>Crea, edita o deshabilita productos</p>
+            </div>
+            <button class="btn btn-primario" style="width:auto; padding:10px 20px; font-size:13px;" onclick="nuevoProducto()">+ Nuevo producto</button>
+        </div>
+
+        <table class="tabla-menu">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Disponible</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="filas"></tbody>
+        </table>
+
+        <p style="font-size:12px; color:var(--charcoal-soft); margin-top:14px;">
+            Nota: un producto con pedidos activos no se puede eliminar; solo se marca como "no disponible".
+        </p>
+    </main>
+</div>
+
+<script src="script.js"></script>
+<script>const sesion = exigirAdmin(); if (!sesion) throw new Error('Permisos de administrador requeridos');</script>
+<script>
+function renderTabla() {
+    const productos = getProductos();
+    document.getElementById('filas').innerHTML = productos.map(p => `
+        <tr>
+            <td>${p.emoji} ${p.nombre}</td>
+            <td>${p.categoria}</td>
+            <td>${fmt(p.precio)}</td>
+            <td><span class="${p.disponible ? 'disponible-si' : 'disponible-no'}">${p.disponible ? 'Sí' : 'No'}</span></td>
+            <td>
+                <span class="btn-mini" onclick="editarProducto(${p.id})">Editar</span>
+                <span class="btn-mini" onclick="toggleDisponible(${p.id})">${p.disponible ? 'Deshabilitar' : 'Habilitar'}</span>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function editarProducto(id) {
+    const productos = getProductos();
+    const p = productos.find(x => x.id === id);
+
+    const nombre = prompt('Nombre del producto:', p.nombre);
+    if (nombre === null) return;
+    const categoria = prompt('Categoría:', p.categoria);
+    if (categoria === null) return;
+    const precioTexto = prompt('Precio (solo número, ej. 15000):', p.precio);
+    if (precioTexto === null) return;
+    const precio = Number(precioTexto.replace(/\D/g, ''));
+    const nombreLimpio = nombre.trim();
+    const categoriaLimpia = categoria.trim();
+    if (nombreLimpio.length < 2 || categoriaLimpia.length < 2) { alert('Nombre y categoría son obligatorios.'); return; }
+    if (!Number.isInteger(precio) || precio <= 0) { alert('El precio debe ser un número entero mayor que 0.'); return; }
+
+    p.nombre = nombreLimpio;
+    p.categoria = categoriaLimpia;
+    p.precio = precio;
+
+    saveProductos(productos);
+    renderTabla();
+}
+
+function toggleDisponible(id) {
+    const productos = getProductos();
+    const p = productos.find(x => x.id === id);
+    p.disponible = !p.disponible;
+    saveProductos(productos);
+    renderTabla();
+}
+
+function nuevoProducto() {
+    const nombre = prompt('Nombre del nuevo producto:');
+    if (!nombre) return;
+    const categoria = prompt('Categoría:', 'Entradas') || 'Entradas';
+    const precioTexto = prompt('Precio (solo número, ej. 12000):', '10000');
+    const precio = Number((precioTexto || '0').replace(/\D/g, '')) || 0;
+    const nombreLimpio = nombre.trim();
+    const categoriaLimpia = categoria.trim();
+    if (nombreLimpio.length < 2 || categoriaLimpia.length < 2 || !Number.isInteger(precio) || precio <= 0) {
+        alert('Completa un nombre, una categoría y un precio válido mayor que 0.');
+        return;
+    }
+
+    const productos = getProductos();
+    const nuevoId = productos.length ? Math.max(...productos.map(p => p.id)) + 1 : 1;
+    productos.push({ id: nuevoId, nombre: nombreLimpio, categoria: categoriaLimpia, precio, disponible: true, emoji: '🍽️', desc: '' });
+    saveProductos(productos);
+    renderTabla();
+}
+
+renderTabla();
+document.getElementById('sesion-usuario').textContent = 'Sesión: ' + getSesion().nombre;
+</script>
+</body>
+</html>

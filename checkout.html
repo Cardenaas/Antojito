@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antojito · Checkout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+    <div class="topbar">
+        <a href="carrito.html" class="icon-btn">←</a>
+        <div class="brand" style="font-size:18px;">Checkout</div>
+        <a href="login.html" class="icon-btn" title="Cerrar sesión" onclick="cerrarSesion(); return false;">👤</a>
+    </div>
+
+    <div class="contenido">
+
+        <p class="seccion-titulo">Modo de entrega</p>
+        <div class="rol-selector">
+            <label><input type="radio" name="entrega" value="domicilio" checked onchange="recalcular()"><span>🛵 Domicilio</span></label>
+            <label><input type="radio" name="entrega" value="recoger" onchange="recalcular()"><span>🏠 Recoger en tienda</span></label>
+        </div>
+
+        <div class="campo">
+            <label>Dirección de entrega</label>
+            <input type="text" id="direccion" value="" placeholder="Escribe tu dirección" maxlength="120">
+            <p id="error-direccion" style="display:none;color:var(--adobo);font-size:12px;margin-top:6px;"></p>
+        </div>
+
+        <p class="seccion-titulo" style="margin-top:20px;">Método de pago</p>
+        <div class="tarjeta" style="padding:0; overflow:hidden;">
+            <label style="display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line); font-size:14px; font-weight:600;">
+                <input type="radio" name="pago" value="efectivo" checked> 💵 Efectivo contra entrega
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; padding:14px 16px; font-size:14px; font-weight:600;">
+                <input type="radio" name="pago" value="tarjeta"> 💳 Pago simulado con tarjeta
+            </label>
+        </div>
+        <p style="font-size:12px; color:var(--charcoal-soft); margin:8px 0 20px;">
+            * Este proyecto no procesa pagos reales, solo simula la transacción.
+        </p>
+
+        <div class="tarjeta">
+            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; color:var(--charcoal-soft);">
+                <span>Subtotal</span><span id="subtotal"></span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:10px; color:var(--charcoal-soft);">
+                <span>Domicilio</span><span id="domicilio"></span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-weight:700; font-size:16px; padding-top:10px; border-top:1px solid var(--line);">
+                <span>Total</span><span class="precio" id="total"></span>
+            </div>
+        </div>
+
+        <button class="btn btn-primario" style="width:100%;" onclick="confirmarPedido()">Confirmar pedido</button>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+<script>const sesion = exigirCliente(); if (!sesion) throw new Error('Sesión requerida');</script>
+<script>
+function costoDomicilio() {
+    const modo = document.querySelector('input[name="entrega"]:checked').value;
+    return modo === 'domicilio' ? 4500 : 0;
+}
+
+function actualizarDireccion() {
+    const domicilio = document.querySelector('input[name="entrega"]:checked').value === 'domicilio';
+    const campo = document.getElementById('direccion');
+    campo.disabled = !domicilio;
+    campo.required = domicilio;
+    if (!domicilio) document.getElementById('error-direccion').style.display = 'none';
+}
+
+function recalcular() {
+    actualizarDireccion();
+    if (getCarrito().length === 0) { window.location.href = 'carrito.html'; return; }
+    const sub = totalCarrito();
+    const dom = costoDomicilio();
+    document.getElementById('subtotal').textContent = fmt(sub);
+    document.getElementById('domicilio').textContent = dom === 0 ? 'Gratis' : fmt(dom);
+    document.getElementById('total').textContent = fmt(sub + dom);
+}
+
+function confirmarPedido() {
+    if (getCarrito().length === 0) return;
+    const tipoEntrega = document.querySelector('input[name="entrega"]:checked').value;
+    const direccion = document.getElementById('direccion').value.trim();
+    const metodoPago = document.querySelector('input[name="pago"]:checked').value;
+    const error = document.getElementById('error-direccion');
+
+    if (tipoEntrega === 'domicilio' && direccion.length < 8) {
+        error.textContent = 'Para domicilio debes ingresar una dirección válida.';
+        error.style.display = 'block';
+        return;
+    }
+    error.style.display = 'none';
+
+    const pedido = crearPedidoDesdeCarrito(costoDomicilio(), { tipoEntrega, direccion, metodoPago });
+    if (!pedido) {
+        error.textContent = 'No fue posible crear el pedido. Verifica los productos disponibles.';
+        error.style.display = 'block';
+        return;
+    }
+    window.location.href = 'seguimiento.html';
+}
+
+recalcular();
+</script>
+</body>
+</html>

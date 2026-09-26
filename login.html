@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antojito · Ingresar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+    <div class="topbar">
+        <div>
+            <div class="brand">Antojito</div>
+            <div class="tagline">el de confianza</div>
+        </div>
+    </div>
+
+    <div class="contenido">
+
+        <p style="font-size:13px; color:var(--charcoal-soft); margin-bottom:16px;">
+            ¿Cómo vas a ingresar hoy?
+        </p>
+
+        <div class="rol-selector">
+            <label><input type="radio" name="rol" value="cliente" checked><span>🧑‍🍳 Soy cliente</span></label>
+            <label><input type="radio" name="rol" value="admin"><span>🔑 Soy administrador</span></label>
+        </div>
+
+        <div class="tabs">
+            <button class="activo">Iniciar sesión</button>
+            <button>Crear cuenta</button>
+        </div>
+
+        <form id="form-login">
+            <div class="campo">
+                <label>Correo electrónico</label>
+                <input type="email" id="correo" placeholder="tucorreo@ejemplo.com">
+            </div>
+            <div class="campo">
+                <label>Contraseña</label>
+                <input type="password" id="clave" placeholder="••••••••">
+            </div>
+
+            <p id="error-login" style="color:var(--adobo); font-size:13px; margin-bottom:12px; display:none;"></p>
+
+            <button type="submit" class="btn btn-primario" style="margin-bottom:12px;">Ingresar</button>
+            <p style="text-align:center; font-size:13px; color:var(--charcoal-soft);">
+                ¿Olvidaste tu contraseña? <span class="btn-texto">Recuperar</span>
+            </p>
+        </form>
+
+        <div style="margin-top: 30px; padding-top:20px; border-top:1px solid var(--line);">
+            <p style="font-size:12px; color:var(--charcoal-soft); text-align:center; margin-bottom:10px;">
+                Credenciales de prueba mientras no hay backend:
+            </p>
+            <div class="tarjeta" style="font-size:12px; padding:12px;">
+                <p><strong>Cliente:</strong> cliente@antojito.com / cliente123</p>
+                <p style="margin-top:4px;"><strong>Administrador:</strong> admin@antojito.com / admin123</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+const CUENTAS = {
+    cliente: { id: 1, nombre: 'Cliente de prueba', correo: 'cliente@antojito.com', clave: 'cliente123', rol: 'cliente', destino: 'menu.html' },
+    admin: { id: 2, nombre: 'Administrador', correo: 'admin@antojito.com', clave: 'admin123', rol: 'admin', destino: 'admin-pedidos.html' }
+};
+
+// Si ya hay una sesión activa, no se vuelve a pedir login.
+const sesionActual = getSesion();
+if (sesionActual) window.location.replace(sesionActual.rol === 'admin' ? 'admin-pedidos.html' : 'menu.html');
+
+document.getElementById('form-login').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const rol = document.querySelector('input[name="rol"]:checked').value;
+    const correo = document.getElementById('correo').value.trim().toLowerCase();
+    const clave = document.getElementById('clave').value;
+    const cuenta = CUENTAS[rol];
+    const error = document.getElementById('error-login');
+
+    if (!correo || !clave) {
+        error.textContent = 'Ingresa el correo y la contraseña.';
+        error.style.display = 'block';
+        return;
+    }
+
+    if (correo === cuenta.correo && clave === cuenta.clave) {
+        iniciarSesion(cuenta);
+        window.location.replace(cuenta.destino);
+    } else {
+        error.textContent = 'Correo o contraseña incorrectos para el rol seleccionado.';
+        error.style.display = 'block';
+    }
+});
+</script>
+</body>
+</html>

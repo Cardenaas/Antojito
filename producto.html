@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antojito · Detalle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+    <div class="topbar">
+        <a href="menu.html" class="icon-btn">←</a>
+        <div class="brand" style="font-size:18px;">Detalle</div>
+        <a href="login.html" class="icon-btn" title="Cerrar sesión" onclick="cerrarSesion(); return false;">👤</a>
+    </div>
+
+    <div id="foto" style="height:180px; background:var(--cream-dark); display:flex; align-items:center; justify-content:center; font-size:64px;"></div>
+
+    <div class="contenido">
+        <h1 id="nombre" style="font-size:20px; margin-bottom:6px;"></h1>
+        <p id="desc" style="color:var(--charcoal-soft); font-size:14px; margin-bottom:10px;"></p>
+        <p class="precio" id="precio-base" style="font-size:20px; margin-bottom:20px;"></p>
+
+        <div class="tarjeta">
+            <p style="font-weight:700; font-size:14px; margin-bottom:10px;">Modificaciones</p>
+            <label style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:14px;">
+                <span><input type="checkbox" class="mod" data-precio="3000" data-label="tocineta extra" checked> Tocineta extra (+$3.000)</span>
+            </label>
+            <label style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:14px;">
+                <span><input type="checkbox" class="mod" data-precio="0" data-label="sin cebolla"> Sin cebolla</span>
+            </label>
+            <label style="display:flex; justify-content:space-between; font-size:14px;">
+                <span><input type="checkbox" class="mod" data-precio="2000" data-label="papas por ensalada"> Papas por ensalada (+$2.000)</span>
+            </label>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+            <span style="font-weight:700; font-size:14px;">Cantidad</span>
+            <div style="display:flex; align-items:center; gap:14px;">
+                <span class="btn-agregar" style="background:var(--cream-dark); color:var(--charcoal);" onclick="cambiarCantidad(-1)">−</span>
+                <span style="font-weight:700;" id="cantidad">1</span>
+                <span class="btn-agregar" onclick="cambiarCantidad(1)">+</span>
+            </div>
+        </div>
+
+        <button class="btn btn-primario" onclick="confirmarAgregar()" id="btn-agregar-carrito" style="width:100%;">Agregar al carrito</button>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+<script>const sesion = exigirCliente(); if (!sesion) throw new Error('Sesión requerida');</script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const idProducto = Number(params.get('id')) || 2;
+const producto = getProducto(idProducto);
+let cantidad = 1;
+
+if (!producto || !producto.disponible) window.location.replace('menu.html');
+
+if (!producto) throw new Error('Producto no encontrado');
+
+document.getElementById('foto').textContent = producto.emoji;
+document.getElementById('nombre').textContent = producto.nombre;
+document.getElementById('desc').textContent = producto.desc;
+document.getElementById('precio-base').textContent = fmt(producto.precio);
+
+function calcularTotales() {
+    const mods = [...document.querySelectorAll('.mod:checked')];
+    const extra = mods.reduce((s, m) => s + Number(m.dataset.precio), 0);
+    const unit = producto.precio + extra;
+    const total = unit * cantidad;
+    document.getElementById('btn-agregar-carrito').textContent = `Agregar al carrito · ${fmt(total)}`;
+    return { unit, mods: mods.map(m => m.dataset.label) };
+}
+
+function cambiarCantidad(delta) {
+    cantidad = Math.max(1, cantidad + delta);
+    document.getElementById('cantidad').textContent = cantidad;
+    calcularTotales();
+}
+
+function confirmarAgregar() {
+    const { unit, mods } = calcularTotales();
+    agregarAlCarrito(producto.id, cantidad, unit, mods.join(', '));
+    window.location.href = 'menu.html';
+}
+
+document.querySelectorAll('.mod').forEach(m => m.addEventListener('change', calcularTotales));
+calcularTotales();
+</script>
+</body>
+</html>

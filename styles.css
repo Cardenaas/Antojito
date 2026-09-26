@@ -1,0 +1,529 @@
+/* ============================================
+   ANTOJITO — Sistema de diseño
+   Paleta: chili/adobo cálidos + crema, tipografía
+   redondeada (Baloo 2) para marca, Work Sans para UI
+   ============================================ */
+
+:root {
+    --cream: #fff6ea;
+    --cream-dark: #f7ead4;
+    --charcoal: #2b211a;
+    --charcoal-soft: #6b5c4d;
+    --chili: #e8542b;
+    --chili-dark: #c6431f;
+    --adobo: #a6311f;
+    --gold: #e8a33d;
+    --sage: #4c7a52;
+    --sage-bg: #e8f0e6;
+    --line: #ead9c4;
+    --white: #ffffff;
+    --radius-s: 10px;
+    --radius-m: 16px;
+    --radius-l: 24px;
+    --shadow: 0 6px 20px rgba(166, 49, 31, 0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--cream);
+    color: var(--charcoal);
+    font-family: 'Work Sans', Arial, sans-serif;
+    line-height: 1.5;
+    padding-bottom: 90px;
+}
+
+h1, h2, h3, .brand {
+    font-family: 'Baloo 2', 'Segoe UI', sans-serif;
+    font-weight: 700;
+    color: var(--adobo);
+}
+
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; }
+button { font-family: inherit; cursor: pointer; border: none; }
+img { display: block; max-width: 100%; }
+
+/* --- Contenedor tipo app móvil --- */
+.app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--cream);
+    position: relative;
+    box-shadow: var(--shadow);
+}
+
+/* --- Topbar --- */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+    background: var(--chili);
+    color: var(--white);
+    border-radius: 0 0 var(--radius-l) var(--radius-l);
+}
+
+.topbar .brand {
+    color: var(--white);
+    font-size: 24px;
+}
+
+.topbar .tagline {
+    font-size: 12px;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.topbar .icon-btn {
+    background: rgba(255,255,255,0.18);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--white);
+}
+
+/* --- Categorías (chips) --- */
+.categorias {
+    display: flex;
+    gap: 10px;
+    padding: 16px 20px 4px;
+    overflow-x: auto;
+}
+
+.categorias .chip {
+    flex: none;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--charcoal-soft);
+    white-space: nowrap;
+}
+
+.categorias .chip.activo {
+    background: var(--chili);
+    border-color: var(--chili);
+    color: var(--white);
+}
+
+/* --- Grid de productos --- */
+.productos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 16px 20px;
+}
+
+.producto-card {
+    background: var(--white);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+}
+
+.producto-card .foto {
+    height: 96px;
+    background: var(--cream-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+}
+
+.producto-card .info {
+    padding: 10px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.producto-card h3 {
+    font-size: 15px;
+    color: var(--charcoal);
+}
+
+.producto-card .desc {
+    font-size: 12px;
+    color: var(--charcoal-soft);
+    flex: 1;
+}
+
+.producto-card .fila-precio {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+}
+
+.precio {
+    font-weight: 700;
+    color: var(--adobo);
+    font-size: 14px;
+}
+
+.btn-agregar {
+    background: var(--chili);
+    color: var(--white);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.badge-agotado {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--adobo);
+    background: #fbe4dc;
+    padding: 3px 8px;
+    border-radius: 999px;
+    align-self: flex-start;
+}
+
+/* --- Barra flotante de carrito --- */
+.barra-carrito {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 440px;
+    background: var(--adobo);
+    color: var(--white);
+    border-radius: var(--radius-m);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 10px 24px rgba(166,49,31,0.35);
+}
+
+.barra-carrito .cant {
+    background: var(--white);
+    color: var(--adobo);
+    font-weight: 700;
+    font-size: 12px;
+    border-radius: 999px;
+    padding: 2px 9px;
+    margin-right: 8px;
+}
+
+/* --- Botones generales --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border-radius: var(--radius-s);
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.btn-primario {
+    background: var(--chili);
+    color: var(--white);
+    width: 100%;
+}
+
+.btn-primario:hover { background: var(--chili-dark); }
+
+.btn-secundario {
+    background: var(--white);
+    color: var(--adobo);
+    border: 1.5px solid var(--adobo);
+    width: 100%;
+}
+
+.btn-texto {
+    color: var(--adobo);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* --- Formularios --- */
+.campo {
+    margin-bottom: 14px;
+}
+
+.campo label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--charcoal-soft);
+}
+
+.campo input,
+.campo select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-s);
+    font-size: 15px;
+    background: var(--white);
+    color: var(--charcoal);
+}
+
+.campo input:focus,
+.campo select:focus {
+    outline: none;
+    border-color: var(--chili);
+}
+
+/* --- Tabs login/registro y cliente/admin --- */
+.tabs {
+    display: flex;
+    background: var(--cream-dark);
+    border-radius: var(--radius-s);
+    padding: 4px;
+    margin-bottom: 22px;
+}
+
+.tabs button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    background: transparent;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--charcoal-soft);
+}
+
+.tabs button.activo {
+    background: var(--white);
+    color: var(--adobo);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.rol-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.rol-selector label {
+    flex: 1;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-s);
+    padding: 12px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--charcoal-soft);
+    cursor: pointer;
+}
+
+.rol-selector input { display: none; }
+
+.rol-selector input:checked + span,
+.rol-selector label:has(input:checked) {
+    color: var(--adobo);
+}
+
+.rol-selector label:has(input:checked) {
+    border-color: var(--chili);
+    background: #fdf1ec;
+}
+
+/* --- Estados de pedido --- */
+.estado-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.estado-recibido { background: #fdeed7; color: var(--gold); }
+.estado-preparacion { background: #fbe4dc; color: var(--chili-dark); }
+.estado-listo { background: #e2edf6; color: #2c5f8a; }
+.estado-entregado { background: var(--sage-bg); color: var(--sage); }
+.estado-cancelado { background: #f0ecec; color: var(--charcoal-soft); }
+
+/* --- Contenido / secciones genéricas --- */
+.contenido {
+    padding: 20px;
+}
+
+.seccion-titulo {
+    font-size: 18px;
+    margin-bottom: 14px;
+}
+
+.tarjeta {
+    background: var(--white);
+    border-radius: var(--radius-m);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+}
+
+/* --- Panel administrador (escritorio) --- */
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+    max-width: none;
+}
+
+.admin-sidebar {
+    width: 220px;
+    background: var(--adobo);
+    color: var(--white);
+    padding: 24px 18px;
+    flex-shrink: 0;
+}
+
+.admin-sidebar .brand { color: var(--white); font-size: 22px; margin-bottom: 4px; }
+.admin-sidebar .tagline { font-size: 12px; opacity: 0.85; margin-bottom: 28px; }
+
+.admin-sidebar nav a {
+    display: block;
+    padding: 10px 12px;
+    border-radius: var(--radius-s);
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: rgba(255,255,255,0.85);
+}
+
+.admin-sidebar nav a.activo {
+    background: rgba(255,255,255,0.18);
+    color: var(--white);
+}
+
+.admin-main {
+    flex: 1;
+    padding: 28px 32px;
+    background: var(--cream);
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.admin-header h1 { font-size: 24px; }
+.admin-header p { color: var(--charcoal-soft); font-size: 13px; margin-top: 4px; }
+
+/* --- Kanban de pedidos --- */
+.kanban {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.kanban-col {
+    background: var(--cream-dark);
+    border-radius: var(--radius-m);
+    padding: 14px;
+}
+
+.kanban-col h2 {
+    font-size: 13px;
+    text-transform: none;
+    color: var(--charcoal-soft);
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.pedido-card {
+    background: var(--white);
+    border-radius: var(--radius-s);
+    padding: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+}
+
+.pedido-card .top-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.pedido-card .hora { font-size: 11px; color: var(--charcoal-soft); font-weight: 500; }
+
+.pedido-card ul { font-size: 12px; color: var(--charcoal-soft); margin-bottom: 8px; }
+.pedido-card ul li { margin-bottom: 2px; }
+
+.pedido-card .avanzar {
+    width: 100%;
+    padding: 8px;
+    background: var(--chili);
+    color: var(--white);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* --- Tabla gestión de menú --- */
+.tabla-menu {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.tabla-menu th, .tabla-menu td {
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+}
+
+.tabla-menu th {
+    color: var(--charcoal-soft);
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.disponible-si { color: var(--sage); font-weight: 700; }
+.disponible-no { color: var(--adobo); font-weight: 700; }
+
+.btn-mini {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--cream-dark);
+    color: var(--adobo);
+    margin-right: 6px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 900px) {
+    .admin-layout { flex-direction: column; }
+    .admin-sidebar { width: 100%; }
+    .kanban { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 520px) {
+    .kanban { grid-template-columns: 1fr; }
+}

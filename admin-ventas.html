@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antojito Admin · Ventas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.metricas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.metrica-card { background: var(--white); border-radius: var(--radius-m); padding: 16px; box-shadow: var(--shadow); }
+.metrica-card .icono { font-size: 20px; margin-bottom: 10px; }
+.metrica-card .valor { font-size: 22px; font-weight: 700; color: var(--adobo); font-family: 'Baloo 2', sans-serif; }
+.metrica-card .label { font-size: 12px; color: var(--charcoal-soft); margin-top: 4px; }
+
+.graficos { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+.grafico-card { background: var(--white); border-radius: var(--radius-m); padding: 20px; box-shadow: var(--shadow); }
+.grafico-card h2 { font-size: 15px; margin-bottom: 18px; color: var(--charcoal); font-family: 'Work Sans', sans-serif; }
+
+.barras { display: flex; align-items: flex-end; gap: 14px; height: 180px; }
+.barra { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+.barra .valor-barra { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+.barra .rect { width: 100%; background: var(--chili); border-radius: 6px 6px 0 0; }
+.barra .nombre-barra { font-size: 10px; color: var(--charcoal-soft); margin-top: 6px; text-align: center; }
+
+.dona { width: 170px; height: 170px; border-radius: 50%; margin: 0 auto 18px; }
+.leyenda-item { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; }
+.leyenda-punto { width: 10px; height: 10px; border-radius: 50%; }
+</style>
+</head>
+<body>
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <div class="brand">Antojito</div>
+        <div class="tagline">Panel administrador</div>
+        <nav>
+            <a href="admin-pedidos.html">📋 Pedidos</a>
+            <a href="admin-menu.html">🍽️ Menú</a>
+            <a href="admin-ventas.html" class="activo">📈 Ventas</a>
+            <a href="login.html" onclick="cerrarSesion(); return false;">↩ Salir</a>
+        </nav>
+    </aside>
+
+    <main class="admin-main">
+        <div id="sesion-usuario" style="font-size:12px;color:var(--charcoal-soft);margin-bottom:10px;"></div>
+        <div class="admin-header">
+            <div>
+                <h1>Reporte de ventas</h1>
+                <p>Calculado a partir de los pedidos registrados en el sistema</p>
+            </div>
+        </div>
+
+        <div class="metricas" id="metricas"></div>
+
+        <div class="graficos">
+            <div class="grafico-card">
+                <h2>Unidades vendidas por producto</h2>
+                <div class="barras" id="barras"></div>
+            </div>
+            <div class="grafico-card">
+                <h2>Ingresos por categoría</h2>
+                <div class="dona" id="dona"></div>
+                <div id="leyenda"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="script.js"></script>
+<script>const sesion = exigirAdmin(); if (!sesion) throw new Error('Permisos de administrador requeridos');</script>
+<script>
+const pedidos = getPedidos().filter(p => p.estado !== 'cancelado');
+const productos = getProductos();
+
+// --- Unidades vendidas por producto ---
+const unidadesPorProducto = {};
+pedidos.forEach(p => p.items.forEach(it => {
+    unidadesPorProducto[it.nombre] = (unidadesPorProducto[it.nombre] || 0) + it.cantidad;
+}));
+const listaUnidades = Object.entries(unidadesPorProducto).sort((a, b) => b[1] - a[1]);
+
+// --- Métricas generales ---
+const ventasTotales = pedidos.reduce((s, p) => s + p.total, 0);
+const entregados = pedidos.filter(p => p.estado === 'entregado').length;
+const ticketPromedio = pedidos.length ? ventasTotales / pedidos.length : 0;
+const productoTop = listaUnidades[0] ? listaUnidades[0][0] : '—';
+
+document.getElementById('metricas').innerHTML = `
+    <div class="metrica-card">
+        <div class="icono">💰</div>
+        <div class="valor">${fmt(ventasTotales)}</div>
+        <div class="label">Ventas totales</div>
+    </div>
+    <div class="metrica-card">
+        <div class="icono">🏆</div>
+        <div class="valor" style="font-size:16px;">${productoTop}</div>
+        <div class="label">Producto más vendido</div>
+    </div>
+    <div class="metrica-card">
+        <div class="icono">🧾</div>
+        <div class="valor">${fmt(ticketPromedio)}</div>
+        <div class="label">Ticket promedio</div>
+    </div>
+    <div class="metrica-card">
+        <div class="icono">📦</div>
+        <div class="valor">${entregados}</div>
+        <div class="label">Pedidos entregados</div>
+    </div>
+`;
+
+// --- Gráfico de barras ---
+const maxUnidades = Math.max(...listaUnidades.map(u => u[1]), 1);
+document.getElementById('barras').innerHTML = listaUnidades.map(([nombre, cant]) => `
+    <div class="barra">
+        <span class="valor-barra">${cant}</span>
+        <div class="rect" style="height:${(cant / maxUnidades) * 140}px;"></div>
+        <span class="nombre-barra">${nombre}</span>
+    </div>
+`).join('') || '<p style="font-size:12px; color:var(--charcoal-soft);">Aún no hay ventas registradas.</p>';
+
+// --- Ingresos por categoría (dona) ---
+const ingresosPorCategoria = {};
+pedidos.forEach(p => p.items.forEach(it => {
+    const prod = productos.find(x => x.nombre === it.nombre);
+    const categoria = prod ? prod.categoria : 'Otros';
+    const precio = prod ? prod.precio : 0;
+    ingresosPorCategoria[categoria] = (ingresosPorCategoria[categoria] || 0) + precio * it.cantidad;
+}));
+
+const colores = ['#e8542b', '#e8a33d', '#a6311f', '#4c7a52', '#2c5f8a'];
+const totalIngresos = Object.values(ingresosPorCategoria).reduce((a, b) => a + b, 0) || 1;
+let acumulado = 0;
+const segmentos = Object.entries(ingresosPorCategoria).map(([cat, val], i) => {
+    const porcentaje = (val / totalIngresos) * 100;
+    const inicio = acumulado;
+    acumulado += porcentaje;
+    return `${colores[i % colores.length]} ${inicio}% ${acumulado}%`;
+});
+
+document.getElementById('dona').style.background =
+    `conic-gradient(${segmentos.join(', ')})`;
+
+document.getElementById('leyenda').innerHTML = Object.entries(ingresosPorCategoria).map(([cat, val], i) => `
+    <div class="leyenda-item">
+        <span class="leyenda-punto" style="background:${colores[i % colores.length]}"></span>
+        ${cat} · ${Math.round((val / totalIngresos) * 100)}%
+    </div>
+`).join('') || '<p style="font-size:12px; color:var(--charcoal-soft);">Sin datos aún.</p>';
+document.getElementById('sesion-usuario').textContent = 'Sesión: ' + getSesion().nombre;
+</script>
+</body>
+</html>
